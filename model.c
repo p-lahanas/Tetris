@@ -69,7 +69,7 @@ char** add_piece_types() {
     Tp = &T[0][0];
     Zp = &Z[0][0];
 
-    char** pieces = (char**)calloc(NUM_BLOCKS, sizeof(char*));
+    char** pieces = (char**) calloc(NUM_BLOCKS, sizeof(char*));
     pieces[0] = Lp;
     pieces[1] = Op;
     pieces[2] = Jp;
@@ -90,6 +90,7 @@ Piece* new_piece(State* gameState) {
     
     for (int i = 0; i < MAT; i++) {
         for (int j = 0; j < MAT; j++) {
+            // calculate the contiguous assigned array to the dyanimically allocated array
             newPiece->matrix[i][j] = pieceType[(i * MAT + j) * sizeof(char)];
         }
     }
@@ -130,28 +131,6 @@ void rotate(char matrix[4][4], int dim) {
         free(tempMatrix[l]);
     }
     free(tempMatrix);
-}
-
-
-// returns true if the current piece is still active
-bool is_piece_active(State* gameState) {
-    for (int j = 0; j < MAT; j++) {
-        for (int i = 0; i < MAT; i++) {
-            // check if we are at the bottom
-            Coordinate coor = {i + gameState->currentPiece->position.x, 
-                    j + gameState->currentPiece->position.y};
-            if (gameState->currentPiece->matrix[i][j] == ACTIVE && 
-                    coor.y >= gameState->height) {
-                return false;
-            }
-            // is next square occupied
-            if (gameState->currentPiece->matrix[i][j] == ACTIVE && 
-                    get_cell_value(coor, gameState) == PIECE_CELL) {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 /* Initialises the game state   
@@ -227,25 +206,85 @@ Move get_move() {
     }
     return ERROR;
 }
+void check_full_rows(State* gameState) {
+    for (int j = 0; j < gameState->height; j++) {
+        bool fullRow = true;
+        for (int i = 0; i < gameState->width; i++) {
+            if (gameState->field[i][j] != PIECE_CELL) {
+                fullRow = false;
+                break;
+            }
+        }
+        if (fullRow) {
+            // clear the row
+            Coordinate pos;
+            pos.y = j;
+            for (int k = 0; k < gameState->width; k++) {
+                pos.x = k;
+                set_cell_value(pos, gameState, FREE_CELL);
+                // move all above pieces down
+                for (int y = j; y > 0; y--) {
+                    gameState->field[k][y] = gameState->field[k][y - 1];
+                }
+                
+            }
+
+            // increment the score
+            gameState->score++;
+        }
+    }
+
+}
+
+
+bool is_valid_move(State* gameState, Coordinate newPos) {
+    Piece* piece = gameState->currentPiece;
+    for (int i = 0; i < MAT; i++) {
+        for (int j = 0; j < MAT; j++) {
+            // check for a boundary
+            if ((piece->matrix[i][j] == ACTIVE && newPos.x + i >= gameState->width) ||
+                    (piece->matrix[i][j] == ACTIVE && newPos.x + i < 0)) {
+                return false;
+            } else if (piece->matrix[i][j] == ACTIVE && 
+                    gameState->field[i + newPos.x][j + newPos.y] == PIECE_CELL) {
+                return false;
+            } else if (piece->matrix[i][j] == ACTIVE && newPos.y + j >= gameState->height) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 void move_piece(State* gameState) {
     Move move = get_move();
     // THIS IS DODGY CAUSE IT JUST CHECKS TOP LEFT CORNER
-    int x = gameState->currentPiece->position.x;
-   
+    Coordinate pos;
+    pos.x = gameState->currentPiece->position.x;
+    pos.y = gameState->currentPiece->position.y;
     switch(move) {
         // check for valid move here
         case ROTATE:
             rotate(gameState->currentPiece->matrix, MAT);
+            if (is_valid_move(gameState, pos)) {
+                break;
+            } else {
+                // rotate it back to original state
+                rotate(gameState->currentPiece->matrix, MAT);
+                rotate(gameState->currentPiece->matrix, MAT);
+                rotate(gameState->currentPiece->matrix, MAT);
+            }
             break;
         case RIGHT:
-            if (x + 1 < gameState->width) {
+            pos.x++;
+            if (is_valid_move(gameState, pos)) {
                 gameState->currentPiece->position.x++;
                 break;
             }
             break;
         case LEFT:
-            if (x - 1 >= 0) {
+            pos.x--;
+            if (is_valid_move(gameState, pos)) {
                 gameState->currentPiece->position.x--;
                 break;
             }
@@ -260,21 +299,22 @@ void move_piece(State* gameState) {
 
 void game_update(State* gameState) {
     /// clear previous printing
+    check_full_rows(gameState);
     clear_inactive_cells(gameState);
-    move_piece(gameState);
-    if (is_piece_active(gameState)) {
-        int x, y;
-        x = gameState->currentPiece->position.x;
-        y = gameState->currentPiece->position.y;
+   
+    Coordinate pos;
+    pos.x = gameState->currentPiece->position.x;
+    pos.y = gameState->currentPiece->position.y;
 
+    move_piece(gameState);
+    if (is_valid_move(gameState, pos)) {
         for (int i = 0; i < MAT; i++) {
             for (int j = 0; j < MAT; j++) {
                 if (gameState->currentPiece->matrix[i][j] == ACTIVE) {
-                    gameState->field[i + x][j + y] = ACTIVE_PIECE_CELL;
+                    gameState->field[i + pos.x][j + pos.y] = ACTIVE_PIECE_CELL;
                 }
             }
         }
-
     } else {
         for (int i = 0; i < MAT; i++) {
             for (int j = 0; j < MAT; j++) {

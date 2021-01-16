@@ -18,6 +18,8 @@ void draw_border(State* gameState) {
 }
 
 void update_screen(State* gameState) {
+    // print the score
+    mvprintw(gameState->height + 1, 0, "Score: %d", gameState->score); 
     for (int j = 0; j < gameState->height; j++) {
         // start 1 from left to account for border
         for (int i = 0; i < gameState->width; i++) {

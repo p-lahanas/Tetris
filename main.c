@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define DELAY 100000
+#define DELAY 1000000
 
 int main(int argc, char** argv) {
     WINDOW* w = initscr();
@@ -8,6 +8,10 @@ int main(int argc, char** argv) {
     curs_set(FALSE);
     cbreak();
     nodelay(w, TRUE);
+
+    //seed the RNG
+    time_t t;
+    srand((unsigned) time(&t));
 
     State* gameState = game_start(WIDTH, HEIGHT);
     draw_border(gameState);
