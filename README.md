@@ -6,4 +6,4 @@ To create the tetris executable by running the tetris target
 
 ```make tetris```
 
-![](./Tetris/imgs/base.png)
+![](https://github.com/p-lahanas/Tetris/imgs/base.png)
