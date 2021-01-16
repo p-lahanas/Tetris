@@ -1,5 +1,22 @@
 #include "model.h"
 
+#define NUM_BLOCKS 7
+
+char J[4][4] = 
+{
+    {' ', '1', ' ', ' '},
+    {' ', '1', ' ', ' '},
+    {' ', '1', '1', ' '},
+    {' ', ' ', ' ', ' '}
+};
+
+char O[4][4] = 
+{
+    {' ', ' ', ' ', ' '},
+    {' ', '1', '1', ' '},
+    {' ', '1', '1', ' '},
+    {' ', ' ', ' ', ' '}
+};
 
 char L[4][4] = 
 {
@@ -9,12 +26,71 @@ char L[4][4] =
     {' ', ' ', ' ', ' '}
 };
 
+char I[4][4] = 
+{
+    {' ', '1', ' ', ' '},
+    {' ', '1', ' ', ' '},
+    {' ', '1', ' ', ' '},
+    {' ', '1', ' ', ' '}
+};
+
+char Z[4][4] = 
+{
+    {' ', ' ', ' ', ' '},
+    {' ', '1', '1', ' '},
+    {'1', '1', ' ', ' '},
+    {' ', ' ', ' ', ' '}
+};
+
+char S[4][4] = 
+{
+    {' ', ' ', ' ', ' '},
+    {'1', '1', ' ', ' '},
+    {' ', '1', '1', ' '},
+    {' ', ' ', ' ', ' '}
+};
+
+char T[4][4] = 
+{
+    {' ', '1', ' ', ' '},
+    {'1', '1', ' ', ' '},
+    {' ', '1', ' ', ' '},
+    {' ', ' ', ' ', ' '}
+};
+
+
+char** add_piece_types() {
+    char *Lp, *Op, *Jp, *Ip, *Sp, *Tp, *Zp;
+    Lp = &L[0][0];
+    Op = &O[0][0];
+    Jp = &J[0][0];
+    Ip = &I[0][0];
+    Sp = &S[0][0];
+    Tp = &T[0][0];
+    Zp = &Z[0][0];
+
+    char** pieces = (char**)calloc(NUM_BLOCKS, sizeof(char*));
+    pieces[0] = Lp;
+    pieces[1] = Op;
+    pieces[2] = Jp;
+    pieces[3] = Ip;
+    pieces[4] = Sp;
+    pieces[5] = Tp;
+    pieces[6] = Zp;
+    
+    return pieces;
+}
+
 /* Creates a new piece and add it to gameState*/
-Piece* new_piece(State* gameState, char pieceType[MAT][MAT]) {
+Piece* new_piece(State* gameState) {
     Piece* newPiece = (Piece*) calloc(1, sizeof(Piece));
+    int k = rand() % 7;
+    char* pieceType;
+    pieceType = gameState->pieceTypes[k];
+    
     for (int i = 0; i < MAT; i++) {
         for (int j = 0; j < MAT; j++) {
-            newPiece->matrix[i][j] = pieceType[i][j];
+            newPiece->matrix[i][j] = pieceType[(i * MAT + j) * sizeof(char)];
         }
     }
     // shift left by half length of piece grid
@@ -99,10 +175,10 @@ State* game_start(int width, int height) {
             newGame->field[i][j] = FREE_CELL;
         }
     }
-
+    newGame->pieceTypes = add_piece_types();
     newGame->width = WIDTH;
     newGame->height = HEIGHT;
-    newGame->currentPiece = new_piece(newGame, L);
+    newGame->currentPiece = new_piece(newGame);
 
     return newGame;
 }
@@ -156,23 +232,29 @@ void move_piece(State* gameState) {
     Move move = get_move();
     // THIS IS DODGY CAUSE IT JUST CHECKS TOP LEFT CORNER
     int x = gameState->currentPiece->position.x;
-
+   
     switch(move) {
         // check for valid move here
         case ROTATE:
             rotate(gameState->currentPiece->matrix, MAT);
-        case LEFT:
-            if (x - 1 >= 0) {
-                gameState->currentPiece->position.x--;
-            }
+            break;
         case RIGHT:
             if (x + 1 < gameState->width) {
                 gameState->currentPiece->position.x++;
+                break;
             }
+            break;
+        case LEFT:
+            if (x - 1 >= 0) {
+                gameState->currentPiece->position.x--;
+                break;
+            }
+            break;
         case DOWN:
             gameState->currentPiece->position.y++;
+            break;
         case ERROR:
-            ;
+            break;
     }
 }
 
@@ -203,7 +285,6 @@ void game_update(State* gameState) {
             }
         }
         deactivate_piece(gameState);
-        // CHANGE THIS TO BE RANDOM
-        new_piece(gameState, L);
+        new_piece(gameState);
     }
 }

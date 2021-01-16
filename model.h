@@ -26,7 +26,7 @@ typedef struct Piece {
 } Piece;
 
 typedef struct GameState {
-    char** field; // tetris board
+    char **field, **pieceTypes; // tetris board
     int score, width, height; // current game score
     Piece* currentPiece; // a pointer to the current piece being moved
 } State;
