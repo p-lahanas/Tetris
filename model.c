@@ -58,7 +58,8 @@ char T[4][4] =
     {' ', ' ', ' ', ' '}
 };
 
-
+/* Returns a pointer to an array which 
+   contains pointers to the block layouts*/
 char** add_piece_types() {
     char *Lp, *Op, *Jp, *Ip, *Sp, *Tp, *Zp;
     Lp = &L[0][0];
@@ -180,6 +181,7 @@ void set_cell_value(Coordinate coor, State* gameState, char setValue) {
     gameState->field[coor.x][coor.y] = setValue;
 }
 
+/* Clears any cells from the previous frame*/
 void clear_inactive_cells(State* gameState) {
     for (int i = 0; i < gameState->width; i++) {
         for (int j = 0; j < gameState->height; j++) {
@@ -189,7 +191,8 @@ void clear_inactive_cells(State* gameState) {
         }
     }
 }
-// Returns direction on success otherwise ERR
+
+/* Returns direction on success otherwise ERR*/
 Move get_move() {
     char input = getch();
     switch(input) {
@@ -206,6 +209,8 @@ Move get_move() {
     }
     return ERROR;
 }
+
+/* Checks if a row has been complete and adjusts game state accordingly*/
 void check_full_rows(State* gameState) {
     for (int j = 0; j < gameState->height; j++) {
         bool fullRow = true;
@@ -236,7 +241,7 @@ void check_full_rows(State* gameState) {
 
 }
 
-
+/* Returns true if move is valid, false otherwise*/
 bool is_valid_move(State* gameState, Coordinate newPos) {
     Piece* piece = gameState->currentPiece;
     for (int i = 0; i < MAT; i++) {
@@ -256,12 +261,14 @@ bool is_valid_move(State* gameState, Coordinate newPos) {
     return true;
 }
 
+/* Moves a piece depending on user input*/
 void move_piece(State* gameState) {
-    Move move = get_move();
-    // THIS IS DODGY CAUSE IT JUST CHECKS TOP LEFT CORNER
     Coordinate pos;
     pos.x = gameState->currentPiece->position.x;
     pos.y = gameState->currentPiece->position.y;
+    
+    Move move = get_move();
+   
     switch(move) {
         // check for valid move here
         case ROTATE:
@@ -297,6 +304,7 @@ void move_piece(State* gameState) {
     }
 }
 
+/* Updates the gameState after user input and time*/
 void game_update(State* gameState) {
     /// clear previous printing
     check_full_rows(gameState);

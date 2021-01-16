@@ -5,6 +5,7 @@
 #define BLANK " "
 #define BLOCK "X"
 
+/* Draws the game border*/
 void draw_border(State* gameState) {
     for (int j = 0; j < gameState->height + 1; j++) {
         for (int i = 0; i < gameState->width + 2; i++) {
@@ -17,6 +18,7 @@ void draw_border(State* gameState) {
     }
 }
 
+/* Draws the rest of the game (run after each frame)*/
 void update_screen(State* gameState) {
     // print the score
     mvprintw(gameState->height + 1, 0, "Score: %d", gameState->score); 

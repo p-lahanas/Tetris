@@ -7,7 +7,7 @@
 #include <ncurses.h>
 
 #define HEIGHT 20
-#define WIDTH 25
+#define WIDTH 15
 #define FREE_CELL 0
 #define PIECE_CELL 1
 #define ACTIVE_PIECE_CELL 2
@@ -15,6 +15,7 @@
 
 #define ACTIVE '1'
 
+/* Holds information about a coordinate*/
 typedef struct Coordinate {
     int x, y;
 } Coordinate;
@@ -25,12 +26,14 @@ typedef struct Piece {
     char matrix[4][4];  // the grid layout of the piece   
 } Piece;
 
+/* Stores information about the current state of the game*/
 typedef struct GameState {
     char **field, **pieceTypes; // tetris board
     int score, width, height; // current game score
     Piece* currentPiece; // a pointer to the current piece being moved
 } State;
 
+/* Assigns each move type to an integer*/
 typedef enum Move {
     ROTATE = 0,
     DOWN = 1,
